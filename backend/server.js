@@ -33,8 +33,12 @@ const userRoutes = require("./routes/user");
 app.use("/api", userRoutes);
 const authRoutes = require("./routes/auth");
 app.use("/api", authRoutes);
+const summaryRoutes = require("./routes/analytics");
+app.use("/api", summaryRoutes);
 const transactionRoutes = require("./routes/transactions");
 app.use("/transactions", transactionRoutes);
+const exportRoutes = require("./routes/export");
+app.use("/api/export", exportRoutes);
 
 const server = () => {
     app.listen(PORT, () => {
