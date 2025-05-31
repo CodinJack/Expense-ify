@@ -1,4 +1,5 @@
-const db = require('../db'); // Make sure this exports pool.promise()
+const db = require('../db'); 
+
 
 // Add a new expense
 exports.addExpense = async (req, res) => {

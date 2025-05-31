@@ -4,15 +4,29 @@ const session = require("express-session");
 const passport = require("passport");
 const app = express();
 
-require("dotenv").config();
+require("dotenv").config();           // Load environment variables
+require("./passport");                // Register passport strategy BEFORE initializing it
+
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+app.use(
+  session({
+    secret: "cats",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(cors({
+  origin: "http://localhost:3000", // frontend URL
+  credentials: true, // this allows sending cookies
+}));
+
+app.use(passport.initialize());       // Must come after passport strategy is loaded
+app.use(passport.session());
 
 const PORT = process.env.PORT || 5000;
-
-//middlewares
-app.use(express.json());
-app.use(cors());
-app.use(session({ secret: "cats", resave: false, saveUninitialized: true }));
-app.use(passport.session());
 
 //routes
 const userRoutes = require("./routes/user");

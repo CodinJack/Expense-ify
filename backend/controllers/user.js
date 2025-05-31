@@ -1,106 +1,73 @@
-const { PrismaClient } = require("../backend/node_modules/.prisma/client");
-const prisma = new PrismaClient();
+const pool = require('../db/index'); // adjust path if needed
 const bcrypt = require("bcryptjs");
 
-exports.createUser = async (req, res) => {
-    bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
-        if (err) {
-            return next(err);
-        } else {
-            try {
-                const user = await prisma.user.create({
-                    data: {
-                        username: req.body.username,
-                        password: hashedPassword,
-                    },
-                });
+exports.createUser = async (req, res, next) => {
+  try {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-                console.log(user);
-                res.json({ msg: "User was created successfully." }).status(201);
-            } catch {
-                res.json({ msg: "User was not created." }).status(400);
-            }
-        }
-    });
+    const [result] = await pool.query(
+      'INSERT INTO users (username, password_hash) VALUES (?, ?)',
+      [req.body.username, hashedPassword]
+    );
+
+    console.log('User created with ID:', result.insertId);
+    res.status(201).json({ msg: "User was created successfully." });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ msg: "User was not created." });
+  }
 };
 
 exports.getUsers = async (req, res) => {
-    if (!req.session.passport) {
+    if (!req.isAuthenticated()) {
         return res.status(401).json({ msg: "You're not authorized!" });
     }
-    if (req.session.passport.user !== 0) {
-        return res.status(401).json({ msg: "You're not authorized!" });
-    }
-    const users = await prisma.user.findMany();
+
+
+  try {
+    const [users] = await pool.query('SELECT id, username FROM users');
     return res.json(users);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ msg: "Server error" });
+  }
 };
 
 exports.getUserByID = async (req, res) => {
-    if (req.session) {
+    if (!req.isAuthenticated()) {
         return res.status(401).json({ msg: "You're not authorized!" });
     }
-    if (!req.session.passport) {
-        return res.status(401).json({ msg: "You're not authorized!" });
+
+
+  try {
+    const [rows] = await pool.query('SELECT id, username FROM users WHERE id = ?', [req.params.id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ msg: "User doesn't exist" });
     }
-    if (req.session.passport.user !== 0) {
-        return res.status(401).json({ msg: "You're not authorized!" });
-    }
-    const user = await prisma.user.findUnique({
-        where: {
-            id: Number(req.params.id),
-        },
-    });
-    if (user) {
-        return res.json(user);
-    }
-    return res.json({ msg: "user doesn't exist" });
+
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ msg: "Server error" });
+  }
 };
 
 exports.deleteUserByID = async (req, res) => {
-    if (!req.session.passport) {
+    if (!req.isAuthenticated()) {
         return res.status(401).json({ msg: "You're not authorized!" });
     }
-    if (req.session.passport.user !== 0) {
-        return res.status(401).json({ msg: "You're not authorized!" });
-    }
-    const user = await prisma.user.delete({
-        where: {
-            id: req.params.id,
-        },
-    });
-    if (user) {
-        return res.json(user);
-    }
-    return res.json({ msg: "user doesn't exist" });
-};
 
-exports.updateUserByID = async (req, res) => {
-    if (!req.session.passport) {
-        return res.status(401).json({ msg: "You're not authorized!" });
-    }
-    if (req.session.passport.user !== 0) {
-        return res.status(401).json({ msg: "You're not authorized!" });
-    }
-    const user = await prisma.user.findUnique({
-        where: {
-            id: req.params.id,
-        },
-    });
+  try {
+    const [result] = await pool.query('DELETE FROM users WHERE id = ?', [req.params.id]);
 
-    if (req.body.username) {
-        user.username = req.body.username;
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ msg: "User doesn't exist" });
     }
-    user = await prisma.user.update({
-        where: {
-            id: req.params.id,
-        },
-        data: {
-            username: user.username,
-        },
-    });
 
-    if (user) {
-        return res.json({ msg: "user was updated successfully." });
-    }
-    return res.json({ msg: "failed." });
+    return res.json({ msg: "User deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ msg: "Server error" });
+  }
 };
