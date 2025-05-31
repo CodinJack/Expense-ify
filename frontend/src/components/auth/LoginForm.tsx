@@ -4,21 +4,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { loginWithPassport } from '@/utils/api'; // <-- make sure path matches
 
-interface LoginFormProps {
-  onLogin: (email: string, password: string) => Promise<void>;
-  onSwitchToSignup: () => void;
-  isLoading?: boolean;
-}
-
-export const LoginForm = ({ onLogin, onSwitchToSignup, isLoading }: LoginFormProps) => {
-  const [email, setEmail] = useState('');
+export const LoginForm = ({ onSwitchToSignup, isLoading = false }) => {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(isLoading);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
+
+    if (!username || !password) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -28,13 +24,25 @@ export const LoginForm = ({ onLogin, onSwitchToSignup, isLoading }: LoginFormPro
     }
 
     try {
-      await onLogin(email, password);
-    } catch (error) {
+      setLoading(true);
+      await loginWithPassport(username, password);
+
+      toast({
+        title: "Success",
+        description: "Logged in successfully!",
+        variant: "default",
+      });
+
+      // Optional: redirect or reload user state
+      window.location.href = "/dashboard"; // or your dashboard route
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password",
+        description: error.message || "Invalid username or password",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,14 +62,14 @@ export const LoginForm = ({ onLogin, onSwitchToSignup, isLoading }: LoginFormPro
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
+              id="username"
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
@@ -72,15 +80,15 @@ export const LoginForm = ({ onLogin, onSwitchToSignup, isLoading }: LoginFormPro
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={loading}
             />
           </div>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700"
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
         <div className="mt-6 text-center">

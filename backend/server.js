@@ -10,16 +10,20 @@ require("./passport");                // Register passport strategy BEFORE initi
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.use(
-  session({
-    secret: "cats",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+app.use(require("express-session")({
+  secret: "cats",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false, // true in production with HTTPS
+    sameSite: "lax",
+  }
+}));
+
 
 app.use(cors({
-  origin: "http://localhost:3000", // frontend URL
+  origin: "http://localhost:8080", // frontend URL
   credentials: true, // this allows sending cookies
 }));
 

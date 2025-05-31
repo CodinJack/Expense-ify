@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,20 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 
 interface SignupFormProps {
-  onSignup: (email: string, password: string, confirmPassword: string) => Promise<void>;
+  onSignup: (username: string, password: string, confirmPassword: string) => Promise<void>;
   onSwitchToLogin: () => void;
   isLoading?: boolean;
 }
 
 export const SignupForm = ({ onSignup, onSwitchToLogin, isLoading }: SignupFormProps) => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !confirmPassword) {
+    if (!username || !password || !confirmPassword) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -47,7 +48,7 @@ export const SignupForm = ({ onSignup, onSwitchToLogin, isLoading }: SignupFormP
     }
 
     try {
-      await onSignup(email, password, confirmPassword);
+      await onSignup(username, password, confirmPassword);
     } catch (error) {
       toast({
         title: "Signup Failed",
@@ -73,13 +74,13 @@ export const SignupForm = ({ onSignup, onSwitchToLogin, isLoading }: SignupFormP
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="username"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               disabled={isLoading}
             />
           </div>

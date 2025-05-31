@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { AddExpenseForm } from '@/components/dashboard/AddExpenseForm';

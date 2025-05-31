@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/hooks/useAuth';
 import { useExpenses } from '@/hooks/useExpenses';
 import { AuthPage } from './AuthPage';
