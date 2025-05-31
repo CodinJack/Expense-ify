@@ -12,3 +12,16 @@ exports.loginUser = (req, res, next) => {
     });
   })(req, res, next);
 };
+
+
+exports.logoutUser = (req, res, next) => {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+    req.session.destroy(() => {
+      res.clearCookie("connect.sid");
+      return res.json({ msg: "Logout successful" });
+    });
+  });
+};

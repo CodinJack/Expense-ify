@@ -18,7 +18,7 @@ export const loginWithPassport = async (username: string, password: string) => {
 
 export const logout = async () => {
   const response = await fetch("http://localhost:5000/api/log-out", {
-    method: "POST",
+    method: "GET",
     credentials: "include", // send cookies
   });
 
