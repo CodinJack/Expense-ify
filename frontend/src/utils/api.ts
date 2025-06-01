@@ -93,7 +93,7 @@ export async function getSummary(): Promise<string> {
 
 // Export expenses as PDF and trigger download
 export async function exportPDF(): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/export/pdf`, {
+  const response = await fetch(`${API_BASE_URL}/api/export/pdf`, {
     method: 'GET',
     credentials: "include",
   });
@@ -113,7 +113,7 @@ export async function exportPDF(): Promise<void> {
 
 // Export expenses as CSV and trigger download
 export async function exportCSV(): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/export/csv`, {
+  const response = await fetch(`${API_BASE_URL}/api/export/csv`, {
     method: 'GET',
     credentials: "include",
   });
