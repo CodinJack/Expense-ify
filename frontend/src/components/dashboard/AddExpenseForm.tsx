@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Plus, DollarSign } from 'lucide-react';
+import { Plus, BadgeIndianRupee } from 'lucide-react';
 
 interface AddExpenseFormProps {
   onAddExpense: (amount: number, description: string) => Promise<void>;
@@ -69,7 +69,7 @@ export const AddExpenseForm = ({ onAddExpense, isLoading }: AddExpenseFormProps)
             <div className="space-y-2">
               <Label htmlFor="amount">Amount</Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                <BadgeIndianRupee className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                 <Input
                   id="amount"
                   type="number"

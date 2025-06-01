@@ -91,12 +91,12 @@ export const ExpenseChart = ({ expenses }: ExpenseChartProps) => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Amount']} />
+                <Tooltip formatter={(value) => [`Rs. ${Number(value).toFixed(2)}`, 'Amount']} />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">${totalSpending.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-gray-900">Rs. {totalSpending.toFixed(2)}</p>
             <p className="text-sm text-gray-500">Total Spending</p>
           </div>
         </CardContent>

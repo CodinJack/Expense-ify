@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Trash2, Calendar, DollarSign } from 'lucide-react';
+import { Trash2, Calendar, BadgeIndianRupee } from 'lucide-react';
 
 interface Expense {
   id: number;
@@ -19,7 +20,9 @@ interface ExpenseListProps {
 }
 
 export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseListProps) => {
-  console.log(expenses);
+  const [currentPage, setCurrentPage] = useState(1);
+  const expensesPerPage = 7;
+
   const handleDelete = async (id: number) => {
     try {
       await onDeleteExpense(id);
@@ -43,7 +46,6 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
       : 'Invalid Date';
   };
 
-
   const getCategoryColor = (category: string) => {
     const colors = {
       'Food': 'bg-orange-100 text-orange-800',
@@ -57,12 +59,24 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
     return colors[category as keyof typeof colors] || colors.Other;
   };
 
+  const totalPages = Math.ceil(expenses.length / expensesPerPage);
+  const paginatedExpenses = expenses.slice(
+    (currentPage - 1) * expensesPerPage,
+    currentPage * expensesPerPage
+  );
+
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   if (!isLoading && expenses.length === 0) {
     return (
       <Card className="w-full">
         <CardContent className="p-8 text-center">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <DollarSign className="w-8 h-8 text-gray-400" />
+            <BadgeIndianRupee className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No expenses yet</h3>
           <p className="text-gray-500">Start by adding your first expense above!</p>
@@ -80,7 +94,7 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {expenses.map((expense) => (
+        {paginatedExpenses.map((expense) => (
           <div
             key={expense.id}
             className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -94,7 +108,7 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
               </div>
               <div className="flex items-center space-x-4 text-sm text-gray-500">
                 <span className="flex items-center space-x-1">
-                  <DollarSign className="w-4 h-4" />
+                  <BadgeIndianRupee className="w-4 h-4" />
                   <span className="font-medium">${Number(expense.amount).toFixed(2)}</span>
                 </span>
                 <span className="flex items-center space-x-1">
@@ -114,6 +128,41 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
             </Button>
           </div>
         ))}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 pt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </Button>
+            {[...Array(totalPages)].map((_, i) => {
+              const page = i + 1;
+              return (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => goToPage(page)}
+                >
+                  {page}
+                </Button>
+              );
+            })}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -20,7 +20,8 @@ exports.addExpense = [
       return res.status(400).json({ message: "Amount and description are required!" });
     }
 
-    const parsedAmount = parseFloat(amount);
+    parsedAmount = parseFloat(amount).toFixed(2);
+    console.log(parsedAmount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       return res.status(400).json({ message: "Amount must be a positive number!" });
     }
