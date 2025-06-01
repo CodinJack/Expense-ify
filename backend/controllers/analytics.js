@@ -32,7 +32,12 @@ exports.getExpenseSummary = async (req, res) => {
     `, [userId]);
 
     // Prepare summary text for AI
-    let summaryText = `Here are my categorized expenses:\n`;
+    let summaryText = `You are analyzing a user's expense data for a financial dashboard. Write a concise summary (1–2 paragraphs) containing:\n` +
+  `1. A short analysis of where the user spends most of their money (based on category totals).\n` +
+  `2. A brief description of the monthly trend (are they spending more/less each month).\n` +
+  `You only have 120 tokens to give summary.` +
+  `Only include the analysis (no introductions or conclusions like "here's your summary"). Use simple, clear language.\n\n` +
+  `Category Totals:\n`;
     for (const row of categorySummary) {
       summaryText += `- ${row.category}: ₹${row.total}\n`;
     }
@@ -44,10 +49,10 @@ exports.getExpenseSummary = async (req, res) => {
 
     // Use Cohere to generate a summary
     const response = await cohere.generate({
-      model: 'command-light',
-      prompt: `Summarize this expense data in simple language for a user:\n\n${summaryText}`,
-      max_tokens: 150,
-      temperature: 0.5,
+      model: 'command',
+      prompt: summaryText,
+      max_tokens: 120,
+      temperature: 0.4,
     });
     if (!response.generations || !response.generations[0]) {
     console.error("Invalid response from Cohere:", response);

@@ -80,7 +80,7 @@ export const deleteExpense = async (id: number) => {
 
 // Get AI-generated summary of expenses
 export async function getSummary(): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/summary`,{
+  const response = await fetch(`${API_BASE_URL}/api/summary`,{
     method: 'GET',
     credentials: "include",
   });
@@ -130,5 +130,3 @@ export async function exportCSV(): Promise<void> {
   link.click();
   window.URL.revokeObjectURL(url);
 }
-
-// 
