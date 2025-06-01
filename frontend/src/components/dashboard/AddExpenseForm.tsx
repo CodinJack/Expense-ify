@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import { Plus, DollarSign } from 'lucide-react';
 
 interface AddExpenseFormProps {
   onAddExpense: (amount: number, description: string) => Promise<void>;
-  isLoading?: boolean;
+  isLoading: boolean;
 }
 
 export const AddExpenseForm = ({ onAddExpense, isLoading }: AddExpenseFormProps) => {
@@ -19,7 +18,7 @@ export const AddExpenseForm = ({ onAddExpense, isLoading }: AddExpenseFormProps)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!amount || !description) {
       toast({
         title: "Error",

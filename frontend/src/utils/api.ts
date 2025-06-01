@@ -28,4 +28,105 @@ export const logout = async () => {
 };
 
 
+// utils/api.ts
+import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+// expenses
+export const addExpense = async (amount: number, description: string) => {
+  const response = await fetch("http://localhost:5000/transactions/expense", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include", // Important for session-based auth (Passport)
+    body: JSON.stringify({ amount, description }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error?.message || "Failed to add expense");
+  }
+
+  return await response.json();
+};
+
+export const fetchExpenses = async () => {
+  const res = await fetch(`${API_BASE_URL}/transactions/expense`, {
+    method: 'GET',
+    credentials: "include"
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`Failed to fetch expenses: ${error}`);
+  }
+
+  return await res.json(); // assumed to be: Expense[]
+};
+
+export const deleteExpense = async (id: number) => {
+  const res = await fetch(`${API_BASE_URL}/transactions/expense/${id}`, {
+    method: 'DELETE',
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`Failed to delete expense: ${error}`);
+  }
+
+  return await res.json();
+};
+
+
+// Get AI-generated summary of expenses
+export async function getSummary(): Promise<string> {
+  const response = await fetch(`${API_BASE_URL}/summary`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch summary');
+  }
+  const data = await response.json();
+  return data.summary; // assumes backend returns { summary: "..." }
+}
+
+// Export expenses as PDF and trigger download
+export async function exportPDF(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/export/pdf`, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to export PDF');
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'expenses.pdf';
+  link.click();
+  window.URL.revokeObjectURL(url);
+}
+
+// Export expenses as CSV and trigger download
+export async function exportCSV(): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/export/csv`, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to export CSV');
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'expenses.csv';
+  link.click();
+  window.URL.revokeObjectURL(url);
+}
+
+// 

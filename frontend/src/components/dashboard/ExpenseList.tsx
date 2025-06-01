@@ -1,5 +1,3 @@
-
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,14 +15,11 @@ interface Expense {
 interface ExpenseListProps {
   expenses: Expense[];
   onDeleteExpense: (id: number) => Promise<void>;
-  isLoading?: boolean;
+  isLoading: boolean;
 }
 
 export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseListProps) => {
-  const [deletingId, setDeletingId] = useState<number | null>(null);
-
   const handleDelete = async (id: number) => {
-    setDeletingId(id);
     try {
       await onDeleteExpense(id);
       toast({
@@ -37,8 +32,6 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
         description: "Failed to delete expense",
         variant: "destructive",
       });
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -63,7 +56,7 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
     return colors[category as keyof typeof colors] || colors.Other;
   };
 
-  if (expenses.length === 0) {
+  if (!isLoading && expenses.length === 0) {
     return (
       <Card className="w-full">
         <CardContent className="p-8 text-center">
@@ -113,7 +106,7 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
               variant="ghost"
               size="sm"
               onClick={() => handleDelete(expense.id)}
-              disabled={deletingId === expense.id || isLoading}
+              disabled={isLoading}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <Trash2 className="w-4 h-4" />

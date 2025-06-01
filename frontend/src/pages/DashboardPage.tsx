@@ -1,10 +1,19 @@
-
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { AddExpenseForm } from '@/components/dashboard/AddExpenseForm';
 import { ExpenseList } from '@/components/dashboard/ExpenseList';
 import { ExpenseChart } from '@/components/dashboard/ExpenseChart';
 import { AIInsights } from '@/components/dashboard/AIInsights';
+
+// Import your API util functions here
+import {
+  fetchExpenses,
+  addExpense,
+  deleteExpense,
+  getSummary,
+  exportPDF,
+  exportCSV,
+} from '@/utils/api';
 
 interface Expense {
   id: number;
@@ -17,32 +26,17 @@ interface Expense {
 interface DashboardPageProps {
   userEmail: string;
   onLogout: () => void;
-  onAddExpense: (amount: number, description: string) => Promise<void>;
-  onDeleteExpense: (id: number) => Promise<void>;
-  onGetSummary: () => Promise<string>;
-  onExportPDF: () => Promise<void>;
-  onExportCSV: () => Promise<void>;
-  onFetchExpenses: () => Promise<Expense[]>;
 }
 
-export const DashboardPage = ({
-  userEmail,
-  onLogout,
-  onAddExpense,
-  onDeleteExpense,
-  onGetSummary,
-  onExportPDF,
-  onExportCSV,
-  onFetchExpenses,
-}: DashboardPageProps) => {
+export const DashboardPage = ({ userEmail, onLogout }: DashboardPageProps) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  const fetchExpenses = async () => {
+  const loadExpenses = async () => {
     try {
-      const fetchedExpenses = await onFetchExpenses();
-      setExpenses(fetchedExpenses);
+      const data = await fetchExpenses();
+      setExpenses(data);
     } catch (error) {
       console.error('Failed to fetch expenses:', error);
     } finally {
@@ -51,22 +45,56 @@ export const DashboardPage = ({
   };
 
   useEffect(() => {
-    fetchExpenses();
+    loadExpenses();
   }, []);
 
   const handleAddExpense = async (amount: number, description: string) => {
     setIsLoading(true);
     try {
-      await onAddExpense(amount, description);
-      await fetchExpenses(); // Refresh the list
+      await addExpense(amount, description);
+      await loadExpenses();
+    } catch (error) {
+      console.error('Failed to add expense:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteExpense = async (id: number) => {
-    await onDeleteExpense(id);
-    await fetchExpenses(); // Refresh the list
+    setIsLoading(true);
+    try {
+      await deleteExpense(id);
+      await loadExpenses();
+    } catch (error) {
+      console.error('Failed to delete expense:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGetSummary = async () => {
+    try {
+      return await getSummary();
+    } catch (error) {
+      console.error('Failed to get summary:', error);
+      return "Error getting summary.";
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      await exportPDF();
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      await exportCSV();
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+    }
   };
 
   if (isInitialLoading) {
@@ -85,7 +113,7 @@ export const DashboardPage = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
       <Header onLogout={onLogout} userEmail={userEmail} />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -117,9 +145,9 @@ export const DashboardPage = ({
             {/* AI Insights & Export */}
             <div className="lg:col-span-1">
               <AIInsights
-                onGetSummary={onGetSummary}
-                onExportPDF={onExportPDF}
-                onExportCSV={onExportCSV}
+                onGetSummary={handleGetSummary}
+                onExportPDF={handleExportPDF}
+                onExportCSV={handleExportCSV}
               />
             </div>
           </div>
