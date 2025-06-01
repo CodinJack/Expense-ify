@@ -109,7 +109,7 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
               <div className="flex items-center space-x-4 text-sm text-gray-500">
                 <span className="flex items-center space-x-1">
                   <BadgeIndianRupee className="w-4 h-4" />
-                  <span className="font-medium">${Number(expense.amount).toFixed(2)}</span>
+                  <span className="font-medium">{Number(expense.amount).toFixed(2)}</span>
                 </span>
                 <span className="flex items-center space-x-1">
                   <Calendar className="w-4 h-4" />

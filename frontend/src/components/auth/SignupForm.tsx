@@ -1,60 +1,65 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { SignUpWithPassport } from '@/utils/api';
 
 interface SignupFormProps {
-  onSignup: (username: string, password: string, confirmPassword: string) => Promise<void>;
   onSwitchToLogin: () => void;
   isLoading?: boolean;
 }
 
-export const SignupForm = ({ onSignup, onSwitchToLogin, isLoading }: SignupFormProps) => {
+export const SignupForm = ({ onSwitchToLogin, isLoading }: SignupFormProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!username || !password || !confirmPassword) {
-      toast({
+      return toast({
         title: "Error",
         description: "Please fill in all fields",
         variant: "destructive",
       });
-      return;
     }
 
     if (password !== confirmPassword) {
-      toast({
+      return toast({
         title: "Error",
         description: "Passwords do not match",
         variant: "destructive",
       });
-      return;
     }
 
     if (password.length < 6) {
-      toast({
+      return toast({
         title: "Error",
         description: "Password must be at least 6 characters long",
         variant: "destructive",
       });
-      return;
     }
 
     try {
-      await onSignup(username, password, confirmPassword);
-    } catch (error) {
+      setIsSubmitting(true);
+      await SignUpWithPassport(username, password);
+      toast({
+        title: "Success",
+        description: "Account created successfully. You can now log in.",
+      });
+      onSwitchToLogin();
+    } catch (error: any) {
       toast({
         title: "Signup Failed",
-        description: "Unable to create account. Please try again.",
+        description: error?.message || "Unable to create account. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -77,11 +82,11 @@ export const SignupForm = ({ onSignup, onSwitchToLogin, isLoading }: SignupFormP
             <Label htmlFor="username">Username</Label>
             <Input
               id="username"
-              type="username"
+              type="text"
               placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSubmitting}
             />
           </div>
           <div className="space-y-2">
@@ -92,7 +97,7 @@ export const SignupForm = ({ onSignup, onSwitchToLogin, isLoading }: SignupFormP
               placeholder="Create a password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSubmitting}
             />
           </div>
           <div className="space-y-2">
@@ -103,15 +108,15 @@ export const SignupForm = ({ onSignup, onSwitchToLogin, isLoading }: SignupFormP
               placeholder="Confirm your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSubmitting}
             />
           </div>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700"
-            disabled={isLoading}
+            disabled={isLoading || isSubmitting}
           >
-            {isLoading ? "Creating Account..." : "Create Account"}
+            {isSubmitting ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
         <div className="mt-6 text-center">

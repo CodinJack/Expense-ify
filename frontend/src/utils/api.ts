@@ -16,6 +16,22 @@ export const loginWithPassport = async (username: string, password: string) => {
   return await response.json(); // Optional: user data or success message
 };
 
+export const SignUpWithPassport = async (username: string, password: string) => {
+  const response = await fetch(`${API_BASE_URL}/api/create-user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // Enable cookie-based sessions
+    body: JSON.stringify({ username, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Login failed");
+  }
+
+  return await response.json(); // Optional: user data or success message
+};
+
 
 export const logout = async () => {
   const response = await fetch(`${API_BASE_URL}/api/log-out`, {
