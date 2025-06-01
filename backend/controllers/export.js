@@ -224,6 +224,13 @@ exports.exportPDF = [
         y += rowHeight;
         rowIndex++;
       }
+      const footerHeight = 70;
+      const spaceLeft = doc.page.height - y;
+
+      if (spaceLeft < footerHeight) {
+        doc.addPage();
+        y = 60;
+      }
 
       // Footer with summary
       const footerY = y + 30;
@@ -247,16 +254,6 @@ exports.exportPDF = [
       // Add page numbers to current page only
       doc.rect(40, doc.page.height - 60, doc.page.width - 80, 1)
          .fill(accentColor);
-
-      doc.fillColor(mutedColor)
-         .font('Helvetica')
-         .fontSize(9)
-         .text('Page 1', 
-               40, doc.page.height - 45, { width: doc.page.width - 80, align: 'center' });
-
-      doc.text('Expense Management System', 
-               40, doc.page.height - 30, { width: doc.page.width - 80, align: 'center' });
-
       doc.end();
     } catch (err) {
       console.error("PDF Export Error:", err);
