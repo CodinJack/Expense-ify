@@ -1,6 +1,7 @@
-// utils/api.ts (or inline inside component if preferred)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 export const loginWithPassport = async (username: string, password: string) => {
-  const response = await fetch("http://localhost:5000/api/log-in", {
+  const response = await fetch(`${API_BASE_URL}/api/log-in`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include", // Enable cookie-based sessions
@@ -17,7 +18,7 @@ export const loginWithPassport = async (username: string, password: string) => {
 
 
 export const logout = async () => {
-  const response = await fetch("http://localhost:5000/api/log-out", {
+  const response = await fetch(`${API_BASE_URL}/api/log-out`, {
     method: "GET",
     credentials: "include", // send cookies
   });
@@ -28,10 +29,6 @@ export const logout = async () => {
 };
 
 
-// utils/api.ts
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
 // expenses
 export const addExpense = async (amount: number, description: string) => {
@@ -63,7 +60,7 @@ export const fetchExpenses = async () => {
     throw new Error(`Failed to fetch expenses: ${error}`);
   }
 
-  return await res.json(); // assumed to be: Expense[]
+  return await res.json();
 };
 
 export const deleteExpense = async (id: number) => {
@@ -91,7 +88,7 @@ export async function getSummary(): Promise<string> {
     throw new Error('Failed to fetch summary');
   }
   const data = await response.json();
-  return data.summary; // assumes backend returns { summary: "..." }
+  return data.summary;
 }
 
 // Export expenses as PDF and trigger download
