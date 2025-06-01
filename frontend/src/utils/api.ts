@@ -35,7 +35,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 
 // expenses
 export const addExpense = async (amount: number, description: string) => {
-  const response = await fetch("http://localhost:5000/transactions/expense", {
+  const response = await fetch(`${API_BASE_URL}/transactions/expense`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -83,7 +83,10 @@ export const deleteExpense = async (id: number) => {
 
 // Get AI-generated summary of expenses
 export async function getSummary(): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/summary`);
+  const response = await fetch(`${API_BASE_URL}/summary`,{
+    method: 'GET',
+    credentials: "include",
+  });
   if (!response.ok) {
     throw new Error('Failed to fetch summary');
   }
@@ -95,6 +98,7 @@ export async function getSummary(): Promise<string> {
 export async function exportPDF(): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/export/pdf`, {
     method: 'GET',
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -114,6 +118,7 @@ export async function exportPDF(): Promise<void> {
 export async function exportCSV(): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/export/csv`, {
     method: 'GET',
+    credentials: "include",
   });
 
   if (!response.ok) {
