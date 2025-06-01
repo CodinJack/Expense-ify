@@ -19,6 +19,7 @@ interface ExpenseListProps {
 }
 
 export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseListProps) => {
+  console.log(expenses);
   const handleDelete = async (id: number) => {
     try {
       await onDeleteExpense(id);
@@ -36,12 +37,12 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    const date = new Date(dateString);
+    return !isNaN(date.getTime())
+      ? date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+      : 'Invalid Date';
   };
+
 
   const getCategoryColor = (category: string) => {
     const colors = {
@@ -94,7 +95,7 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
               <div className="flex items-center space-x-4 text-sm text-gray-500">
                 <span className="flex items-center space-x-1">
                   <DollarSign className="w-4 h-4" />
-                  <span className="font-medium">${expense.amount.toFixed(2)}</span>
+                  <span className="font-medium">${Number(expense.amount).toFixed(2)}</span>
                 </span>
                 <span className="flex items-center space-x-1">
                   <Calendar className="w-4 h-4" />

@@ -1,6 +1,8 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import {
+  PieChart, Pie, Cell, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend
+} from 'recharts';
 import { TrendingUp } from 'lucide-react';
 
 interface Expense {
@@ -16,10 +18,10 @@ interface ExpenseChartProps {
 }
 
 export const ExpenseChart = ({ expenses }: ExpenseChartProps) => {
-  // Process data for category pie chart
+  // Process category breakdown
   const categoryData = expenses.reduce((acc, expense) => {
-    const category = expense.category;
-    acc[category] = (acc[category] || 0) + expense.amount;
+    const category = expense.category || 'Uncategorized';
+    acc[category] = (acc[category] || 0) + Number(expense.amount);
     return acc;
   }, {} as Record<string, number>);
 
@@ -28,27 +30,26 @@ export const ExpenseChart = ({ expenses }: ExpenseChartProps) => {
     value: amount,
   }));
 
-  // Process data for daily spending bar chart
+  // Process daily spending (last 7 days)
   const dailyData = expenses.reduce((acc, expense) => {
-    const date = new Date(expense.date).toISOString().split('T')[0];
-    acc[date] = (acc[date] || 0) + expense.amount;
+    const parsedDate = new Date(expense.date);
+    if (!isNaN(parsedDate.getTime())) {
+      const dateKey = parsedDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+      acc[dateKey] = (acc[dateKey] || 0) + Number(expense.amount);
+    }
     return acc;
   }, {} as Record<string, number>);
 
   const barData = Object.entries(dailyData)
     .sort(([a], [b]) => a.localeCompare(b))
-    .slice(-7) // Show last 7 days
+    .slice(-7)
     .map(([date, amount]) => ({
       date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      amount: amount,
+      amount,
     }));
 
-  const COLORS = [
-    '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', 
-    '#ef4444', '#06b6d4', '#84cc16', '#f97316'
-  ];
-
-  const totalSpending = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16', '#f97316'];
+  const totalSpending = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
 
   if (expenses.length === 0) {
     return (
@@ -64,7 +65,7 @@ export const ExpenseChart = ({ expenses }: ExpenseChartProps) => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Category Breakdown */}
+      {/* Category Pie Chart */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -101,7 +102,7 @@ export const ExpenseChart = ({ expenses }: ExpenseChartProps) => {
         </CardContent>
       </Card>
 
-      {/* Daily Spending Trend */}
+      {/* Bar Chart */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">

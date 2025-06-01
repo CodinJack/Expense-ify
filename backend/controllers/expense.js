@@ -84,7 +84,7 @@ exports.getAllExpenses = [
   async (req, res) => {
     try {
       const [expenses] = await db.query(
-        'SELECT * FROM expenses WHERE user_id = ? ORDER BY created_at DESC',
+        'SELECT e.id, e.amount, e.description, c.name as category, e.created_at as date FROM expenses e JOIN categories c where e.category_id = c.id and  user_id = ? ORDER BY date DESC;',
         [req.user.id]
       );
       res.status(200).json(expenses);

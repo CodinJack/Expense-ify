@@ -36,6 +36,7 @@ export const DashboardPage = ({ userEmail, onLogout }: DashboardPageProps) => {
   const loadExpenses = async () => {
     try {
       const data = await fetchExpenses();
+      // console.log(data);
       setExpenses(data);
     } catch (error) {
       console.error('Failed to fetch expenses:', error);
