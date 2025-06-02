@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { fetchCurrentUser } from "@/utils/api"; 
 import { LogOut, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/utils/api';
@@ -12,6 +13,13 @@ interface HeaderProps {
 
 export const Header = ({ onLogout, userEmail }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    fetchCurrentUser()
+      .then(setUser)
+      .catch(() => setUser(null));
+  }, []);
 
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
@@ -32,7 +40,7 @@ export const Header = ({ onLogout, userEmail }: HeaderProps) => {
           <div className="hidden md:flex items-center space-x-4">
             <div className="flex items-center space-x-3 text-sm text-gray-600">
               <User className="w-4 h-4" />
-              <span>{userEmail}</span>
+              <span>{user ? user.username : "Guest"}</span>
             </div>
             <Button
               variant="outline"

@@ -146,3 +146,17 @@ export async function exportCSV(): Promise<void> {
   link.click();
   window.URL.revokeObjectURL(url);
 }
+
+
+export async function fetchCurrentUser() {
+  const res = await fetch(`${API_BASE_URL}/api/me`, {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw new Error("Not authenticated");
+  }
+
+  const data = await res.json();
+  return data.user;
+}
