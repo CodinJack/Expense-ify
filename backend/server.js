@@ -12,12 +12,34 @@ app.set("trust proxy", 1);  // Must come before session
 
 
 app.use(cors({
-  origin: [
-    'http://localhost:8080',
-    'https://expense-ify.vercel.app',
-    '*'
-  ],
-  credentials: true // Important for sessions/cookies
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:8080',
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://expense-ify.vercel.app',
+      // Add your local network IP range
+      /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+      /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/
+    ];
+    
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') {
+        return origin === allowed;
+      }
+      return allowed.test(origin);
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 
 
@@ -26,13 +48,13 @@ app.use(express.json());
 
 app.use(session({
   name: "connect.sid",
-  secret: "cats",
+  secret: "cats", // Use a stronger secret in production
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // True for HTTPS
-    sameSite: process.env.SITE_SETTING, // Required for cross-origin cookies
+    secure: true, // Set to false for development/HTTP
+    sameSite: 'none', // Change from 'none' to 'lax'
     maxAge: 24 * 60 * 60 * 1000, // 1 day
   },
 }));
