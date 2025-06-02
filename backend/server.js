@@ -16,8 +16,9 @@ app.use(require("express-session")({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: false, // true in production with HTTPS
+    secure: true, // true in production with HTTPS
     sameSite: "lax",
+    maxAge:24*60*60*1000
   }
 }));
 
