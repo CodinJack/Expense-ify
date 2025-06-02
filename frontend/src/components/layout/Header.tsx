@@ -80,7 +80,7 @@ export const Header = ({ onLogout, userEmail }: HeaderProps) => {
             <div className="flex flex-col space-y-3">
               <div className="flex items-center space-x-3 text-sm text-gray-600 px-2">
                 <User className="w-4 h-4" />
-                <span>{userEmail}</span>
+                <span>{user ? user.username : "Guest"}</span>
               </div>
               <Button
                 variant="outline"
