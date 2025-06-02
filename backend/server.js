@@ -4,52 +4,49 @@ const session = require("express-session");
 const passport = require("passport");
 const app = express();
 
-require("dotenv").config();           // Load environment variables
-require("./passport");                // Register passport strategy BEFORE initializing it
+require("dotenv").config();
+require("./passport");
+
+// 👉 Required for secure cookies behind Render/Heroku reverse proxy
+app.set("trust proxy", 1);  // Must come before session
+
+app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true, // Allows cookies to be sent
+}));
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use(session({
   name: "connect.sid",
-  secret: "cats",
+  secret: process.env.SESSION_SECRET || "cats",
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // true in production with HTTPS
-    sameSite: "none",
-    maxAge:24*60*60*1000
-  }
+    secure: process.env.NODE_ENV === "production", // True for HTTPS
+    sameSite: "none", // Required for cross-origin cookies
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  },
 }));
 
-app.use(cors({
-  origin: "https://expense-ify.vercel.app", // frontend URL
-  credentials: true, // this allows sending cookies
-}));
-
-app.use(passport.initialize());       // Must come after passport strategy is loaded
+app.use(passport.initialize());
 app.use(passport.session());
 
-const PORT = process.env.PORT || 5000;
-
-//routes
+// Routes
 const userRoutes = require("./routes/user");
-app.use("/api", userRoutes);
 const authRoutes = require("./routes/auth");
-app.use("/api", authRoutes);
 const summaryRoutes = require("./routes/analytics");
-app.use("/api", summaryRoutes);
 const transactionRoutes = require("./routes/transactions");
-app.use("/transactions", transactionRoutes);
 const exportRoutes = require("./routes/export");
 const { prepare } = require("./db");
+
+app.use("/api", userRoutes);
+app.use("/api", authRoutes);
+app.use("/api", summaryRoutes);
+app.use("/transactions", transactionRoutes);
 app.use("/api/export", exportRoutes);
 
-const server = () => {
-    app.listen(PORT, () => {
-        console.log("Listening on port:", PORT);
-    });
-};
-
-server();
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log("Listening on port:", PORT));
