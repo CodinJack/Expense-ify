@@ -5,10 +5,8 @@ const cohere = new CohereClient({
   token: process.env.COHERE_API_KEY,
 });
 
-const verifyToken = require("../middleware/verifyToken");
 
 exports.getExpenseSummary = async (req, res) => {
-  verifyToken;
   try {
     const userId = req.user.id;
 
@@ -34,7 +32,7 @@ exports.getExpenseSummary = async (req, res) => {
     let summaryText = `You are analyzing a user's expense data for a financial dashboard. Write a concise summary (1–2 paragraphs) containing:\n` +
   `1. A short analysis of where the user spends most of their money (based on category totals).\n` +
   `2. A brief description of the monthly trend (are they spending more/less each month).\n` +
-  `You only have 120 tokens to give summary.` +
+  `You only have 100 words in hand to give ur summary in total for both.(keep in mind please)` +
   `Only include the analysis (no introductions or conclusions like "here's your summary"). Use simple, clear language.\n\n` +
   `Category Totals:\n`;
     for (const row of categorySummary) {
