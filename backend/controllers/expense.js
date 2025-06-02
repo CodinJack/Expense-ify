@@ -4,15 +4,11 @@ const db = require("../db");
 const cohere = new CohereClient({
   token: process.env.COHERE_API_KEY,
 });
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  return res.status(401).json({ message: 'Unauthorized: Please log in' });
-}
+
+const verifyToken = require("../middleware/verifyToken");
 
 exports.addExpense = [
-  ensureAuthenticated,
+  verifyToken,
   async (req, res) => {
     const { amount, description } = req.body;
 
@@ -81,7 +77,7 @@ exports.addExpense = [
 
 // Get all expenses for logged-in user only
 exports.getAllExpenses = [
-  ensureAuthenticated,
+  verifyToken,
   async (req, res) => {
     try {
       const [expenses] = await db.query(
@@ -98,7 +94,7 @@ exports.getAllExpenses = [
 
 // Get expense by ID (only if it belongs to logged-in user)
 exports.getExpenseByID = [
-  ensureAuthenticated,
+  verifyToken,
   async (req, res) => {
     const { id } = req.params;
     try {
@@ -119,7 +115,7 @@ exports.getExpenseByID = [
 
 // Delete expense by ID (only if it belongs to logged-in user)
 exports.deleteExpenseByID = [
-  ensureAuthenticated,
+  verifyToken,
   async (req, res) => {
     const { id } = req.params;
     try {

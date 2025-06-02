@@ -5,11 +5,10 @@ const cohere = new CohereClient({
   token: process.env.COHERE_API_KEY,
 });
 
-exports.getExpenseSummary = async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+const verifyToken = require("../middleware/verifyToken");
 
+exports.getExpenseSummary = async (req, res) => {
+  verifyToken;
   try {
     const userId = req.user.id;
 

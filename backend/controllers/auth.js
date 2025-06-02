@@ -3,12 +3,12 @@ const jwt = require("jsonwebtoken");
 const db = require("../db");
 
 exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
   try {
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    const [rows] = await db.query("SELECT * FROM users WHERE username = ?", [username]);
     const user = rows[0];
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ msg: "Invalid credentials" });
     }
 
@@ -21,7 +21,7 @@ exports.loginUser = async (req, res) => {
     res.status(200).json({
       msg: "Login successful",
       token,
-      user: { id: user.id, name: user.name, email: user.email },
+      user: { id: user.id, username: user.username },
     });
   } catch (err) {
     console.error("Login error:", err);

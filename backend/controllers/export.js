@@ -3,13 +3,11 @@ const { Parser } = require("json2csv");
 const PDFDocument = require("pdfkit");
 
 // Middleware to check authentication
-function ensureAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  return res.status(401).json({ message: "Unauthorized" });
-}
+const verifyToken = require("../middleware/verifyToken");
+
 
 exports.exportCSV = [
-  ensureAuthenticated,
+  verifyToken,
   async (req, res) => {
     try {
       const userId = req.user.id;
@@ -37,7 +35,7 @@ exports.exportCSV = [
 ];
 
 exports.exportPDF = [
-  ensureAuthenticated,
+  verifyToken,
   async (req, res) => {
     try {
       const userId = req.user.id;
