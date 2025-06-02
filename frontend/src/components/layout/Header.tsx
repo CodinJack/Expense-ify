@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { LogOut, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { logout } from '@/utils/api';
 import { toast } from '@/hooks/use-toast';
 

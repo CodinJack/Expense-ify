@@ -10,23 +10,29 @@ require("./passport");
 // 👉 Required for secure cookies behind Render/Heroku reverse proxy
 app.set("trust proxy", 1);  // Must come before session
 
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true, // Allows cookies to be sent
+  origin: [
+    'http://localhost:8080',
+    'https://expense-ify.vercel.app',
+    '*'
+  ],
+  credentials: true // Important for sessions/cookies
 }));
+
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use(session({
   name: "connect.sid",
-  secret: process.env.SESSION_SECRET || "cats",
+  secret: "cats",
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", // True for HTTPS
-    sameSite: "none", // Required for cross-origin cookies
+    sameSite: "lax", // Required for cross-origin cookies
     maxAge: 24 * 60 * 60 * 1000, // 1 day
   },
 }));

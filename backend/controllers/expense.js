@@ -59,7 +59,7 @@ exports.addExpense = [
       }
 
       const category_id = categoryMap[predictedName] || null;
-
+      if(category_id == null) throw new Error("AI response was invalid");
       // Insert into DB
       const [result] = await db.query(
         "INSERT INTO expenses (user_id, amount, description, category_id) VALUES (?, ?, ?, ?)",
