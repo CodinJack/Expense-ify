@@ -23,7 +23,7 @@ app.use(require("express-session")({
 
 
 app.use(cors({
-  origin: "http://localhost:8080", // frontend URL
+  origin: process.env.FRONTEND_URL, // frontend URL
   credentials: true, // this allows sending cookies
 }));
 
