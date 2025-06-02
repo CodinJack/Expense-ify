@@ -34,7 +34,7 @@ exports.addExpense = [
       }
 
       // Create prompt for generation
-    const prompt = `Given the following expense description, return the best matching category from this list: ${Object.keys(categoryMap).join(", ")}.\n\nExpense: "${description}"\nCategory:`;
+    const prompt = `Give only the category name and nothing else. Given the following expense description, return the best matching category from this list: ${Object.keys(categoryMap).join(", ")}.\n\nExpense: "${description}"\nCategory:`;
 
     const response = await cohere.generate({
     model: "command-light",
