@@ -4,7 +4,7 @@ export const loginWithPassport = async (username: string, password: string) => {
   const response = await fetch(`${API_BASE_URL}/api/log-in`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include", // Enable cookie-based sessions
+    credentials: "include",
     body: JSON.stringify({ username, password }),
   });
 

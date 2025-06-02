@@ -16,12 +16,11 @@ app.use(require("express-session")({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: true, // true in production with HTTPS
-    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production", // true in production with HTTPS
+    sameSite: "none",
     maxAge:24*60*60*1000
   }
 }));
-
 
 app.use(cors({
   origin: process.env.FRONTEND_URL, // frontend URL
