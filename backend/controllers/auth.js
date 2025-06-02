@@ -1,27 +1,35 @@
 const bcrypt = require("bcryptjs");
-const passport = require("passport");
+const jwt = require("jsonwebtoken");
+const db = require("../db");
 
-exports.loginUser = (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) return next(err);
-    if (!user) return res.status(401).json({ msg: "Invalid credentials" });
+exports.loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    const user = rows[0];
 
-    req.logIn(user, (err) => {
-      if (err) return next(err);
-      return res.json({ msg: "Login successful", user });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ msg: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN }
+    );
+
+    res.status(200).json({
+      msg: "Login successful",
+      token,
+      user: { id: user.id, name: user.name, email: user.email },
     });
-  })(req, res, next);
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ msg: "Server error" });
+  }
 };
 
-
-exports.logoutUser = (req, res, next) => {
-  req.logout(function (err) {
-    if (err) {
-      return next(err);
-    }
-    req.session.destroy(() => {
-      res.clearCookie("connect.sid");
-      return res.json({ msg: "Logout successful" });
-    });
-  });
+exports.logoutUser = (req, res) => {
+  // On client side, just delete the token (no server-side session to destroy)
+  return res.status(200).json({ msg: "Logout successful" });
 };
