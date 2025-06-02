@@ -48,14 +48,15 @@ app.use(express.json());
 
 app.use(session({
   name: "connect.sid",
-  secret: "cats", // Use a stronger secret in production
+  secret: "cats",
   resave: false,
   saveUninitialized: false,
   cookie: {
-    httpOnly: true,
-    secure: true, // Set to false for development/HTTP
-    sameSite: 'none', // Change from 'none' to 'lax'
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    httpOnly: false, // Allow JavaScript access on mobile
+    secure: true,
+    sameSite: 'none',
+    maxAge: 24 * 60 * 60 * 1000,
+    domain: undefined, // Don't set domain explicitly
   },
 }));
 
