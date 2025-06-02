@@ -10,7 +10,8 @@ require("./passport");                // Register passport strategy BEFORE initi
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.use(require("express-session")({
+app.use(session({
+  name: "connect.sid",
   secret: "cats",
   resave: false,
   saveUninitialized: false,
@@ -23,7 +24,7 @@ app.use(require("express-session")({
 }));
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL, // frontend URL
+  origin: "https://expense-ify.vercel.app", // frontend URL
   credentials: true, // this allows sending cookies
 }));
 
@@ -42,6 +43,7 @@ app.use("/api", summaryRoutes);
 const transactionRoutes = require("./routes/transactions");
 app.use("/transactions", transactionRoutes);
 const exportRoutes = require("./routes/export");
+const { prepare } = require("./db");
 app.use("/api/export", exportRoutes);
 
 const server = () => {
