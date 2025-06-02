@@ -1,117 +1,131 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
-export const loginWithPassport = async (username: string, password: string) => {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+function getAuthHeader() {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+// LOGIN
+export const login = async (username: string, password: string) => {
   const response = await fetch(`${API_BASE_URL}/api/log-in`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({ username, password }),
   });
 
+  const data = await response.json();
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Login failed");
+    throw new Error(data.message || "Login failed");
   }
 
-  return await response.json(); // Optional: user data or success message
+  // Save JWT
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+
+  return data;
 };
 
-export const SignUpWithPassport = async (username: string, password: string) => {
+// SIGN UP
+export const signup = async (username: string, password: string) => {
   const response = await fetch(`${API_BASE_URL}/api/create-user`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include", // Enable cookie-based sessions
     body: JSON.stringify({ username, password }),
   });
 
+  const data = await response.json();
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Login failed");
+    throw new Error(data.message || "Signup failed");
   }
 
-  return await response.json(); // Optional: user data or success message
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+
+  return data;
 };
 
-
+// LOGOUT
 export const logout = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/log-out`, {
-    method: "GET",
-    credentials: "include", // send cookies
-  });
-
-  if (!response.ok) {
-    throw new Error("Logout failed");
-  }
+  localStorage.removeItem("token");
 };
 
 
 
 // expenses
+// ADD EXPENSE
 export const addExpense = async (amount: number, description: string) => {
   const response = await fetch(`${API_BASE_URL}/transactions/expense`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...getAuthHeader(),
     },
-    credentials: "include", // Important for session-based auth (Passport)
     body: JSON.stringify({ amount, description }),
   });
 
+  const data = await response.json();
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error?.message || "Failed to add expense");
+    throw new Error(data.message || "Failed to add expense");
   }
 
-  return await response.json();
+  return data;
 };
 
+// GET ALL EXPENSES
 export const fetchExpenses = async () => {
   const res = await fetch(`${API_BASE_URL}/transactions/expense`, {
-    method: 'GET',
-    credentials: "include"
+    headers: getAuthHeader(),
   });
 
+  const data = await res.json();
   if (!res.ok) {
-    const error = await res.text();
-    throw new Error(`Failed to fetch expenses: ${error}`);
+    throw new Error(data.message || "Failed to fetch expenses");
   }
 
-  return await res.json();
+  return data;
 };
 
+// DELETE EXPENSE
 export const deleteExpense = async (id: number) => {
   const res = await fetch(`${API_BASE_URL}/transactions/expense/${id}`, {
     method: 'DELETE',
-    credentials: "include",
+    headers: getAuthHeader(),
   });
 
+  const data = await res.json();
   if (!res.ok) {
-    const error = await res.text();
-    throw new Error(`Failed to delete expense: ${error}`);
+    throw new Error(data.message || "Failed to delete expense");
   }
 
-  return await res.json();
+  return data;
 };
+
 
 
 // Get AI-generated summary of expenses
 export async function getSummary(): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/api/summary`,{
-    method: 'GET',
-    credentials: "include",
+  const response = await fetch(`${API_BASE_URL}/api/summary`, {
+    headers: getAuthHeader(),
   });
+
   if (!response.ok) {
-    throw new Error('Failed to fetch summary');
+    throw new Error("Failed to fetch summary");
   }
+
   const data = await response.json();
   return data.summary;
 }
 
-// Export expenses as PDF and trigger download
 export async function exportPDF(): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/export/pdf`, {
     method: 'GET',
-    credentials: "include",
+    headers: getAuthHeader(),
   });
 
   if (!response.ok) {
@@ -127,11 +141,10 @@ export async function exportPDF(): Promise<void> {
   window.URL.revokeObjectURL(url);
 }
 
-// Export expenses as CSV and trigger download
 export async function exportCSV(): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/export/csv`, {
     method: 'GET',
-    credentials: "include",
+    headers: getAuthHeader(),
   });
 
   if (!response.ok) {
@@ -148,15 +161,16 @@ export async function exportCSV(): Promise<void> {
 }
 
 
+
 export async function fetchCurrentUser() {
   const res = await fetch(`${API_BASE_URL}/api/me`, {
-    credentials: "include",
+    headers: getAuthHeader(),
   });
 
+  const data = await res.json();
   if (!res.ok) {
-    throw new Error("Not authenticated");
+    throw new Error(data.message || "Not authenticated");
   }
 
-  const data = await res.json();
   return data.user;
 }
