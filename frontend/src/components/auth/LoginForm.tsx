@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { loginWithPassport } from '@/utils/api'; // <-- make sure path matches
+import { login } from '@/utils/api'; // ✅ updated import
 
 export const LoginForm = ({ onSwitchToSignup, isLoading = false }) => {
   const [username, setUsername] = useState('');
@@ -25,7 +25,7 @@ export const LoginForm = ({ onSwitchToSignup, isLoading = false }) => {
 
     try {
       setLoading(true);
-      await loginWithPassport(username, password);
+      await login(username, password); // ✅ updated function
 
       toast({
         title: "Success",
@@ -34,7 +34,7 @@ export const LoginForm = ({ onSwitchToSignup, isLoading = false }) => {
       });
 
       // Optional: redirect or reload user state
-      window.location.href = "/dashboard"; // or your dashboard route
+      window.location.href = "/dashboard";
     } catch (error: any) {
       toast({
         title: "Login Failed",

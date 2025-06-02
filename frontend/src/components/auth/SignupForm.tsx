@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { SignUpWithPassport } from '@/utils/api';
+import { signup } from '@/utils/api'; // ✅ updated import
 
 interface SignupFormProps {
   onSwitchToLogin: () => void;
@@ -46,12 +46,14 @@ export const SignupForm = ({ onSwitchToLogin, isLoading }: SignupFormProps) => {
 
     try {
       setIsSubmitting(true);
-      await SignUpWithPassport(username, password);
+      await signup(username, password); // ✅ updated function
+
       toast({
         title: "Success",
         description: "Account created successfully. You can now log in.",
       });
-      onSwitchToLogin();
+
+      onSwitchToLogin(); // Optional: Redirect to login
     } catch (error: any) {
       toast({
         title: "Signup Failed",
