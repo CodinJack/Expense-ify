@@ -44,6 +44,7 @@ exports.addExpense = [
     stop_sequences: ["\n"],
     });
 
+    console.log(response);
     if (!response.generations || !response.generations[0]) {
     console.error("Invalid response from Cohere:", response);
     throw new Error("AI response was invalid");
@@ -52,7 +53,7 @@ exports.addExpense = [
     let rawPrediction = response.generations[0].text.trim().toLowerCase();
     let predictedName = rawPrediction.split(/[,|/]/)[0].trim();  // Split on comma, slash, or pipe
 
-      // Simple cleanup for plural
+    // Simple cleanup for plural
       if (!categoryMap[predictedName] && predictedName.endsWith("s")) {
         predictedName = predictedName.slice(0, -1);
       }
