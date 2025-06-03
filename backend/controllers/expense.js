@@ -183,19 +183,15 @@ Category:`;
         stop_sequences: ["\n", ".", "!", "?", ";"], // Stop on punctuation
       });
 
-      console.log("Cohere response:", response);
-
       if (!response.generations || !response.generations[0]) {
         console.error("Invalid response from Cohere:", response);
         throw new Error("AI response was invalid");
       }
 
       const rawPrediction = response.generations[0].text;
-      console.log("Raw AI prediction:", rawPrediction);
 
       // Process the AI response with improved logic
       const predictedCategory = processAIResponse(rawPrediction, categoryMap);
-      console.log("Processed prediction:", predictedCategory);
 
       if (!predictedCategory) {
         console.error("Could not match AI response to any category:", rawPrediction);
