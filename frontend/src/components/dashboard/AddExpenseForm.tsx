@@ -5,16 +5,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
-import { Plus, BadgeIndianRupee } from 'lucide-react';
+import { Plus, BadgeIndianRupee, FileUp } from 'lucide-react';
 
 interface AddExpenseFormProps {
-  onAddExpense: (amount: number, description: string) => Promise<void>;
+  onAddExpense: (amount: number, description: string, file?: File) => Promise<void>;
   isLoading: boolean;
 }
 
 export const AddExpenseForm = ({ onAddExpense, isLoading }: AddExpenseFormProps) => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,9 +40,10 @@ export const AddExpenseForm = ({ onAddExpense, isLoading }: AddExpenseFormProps)
     }
 
     try {
-      await onAddExpense(numAmount, description);
+      await onAddExpense(numAmount, description, receiptFile || undefined);
       setAmount('');
       setDescription('');
+      setReceiptFile(null);
       toast({
         title: "Success",
         description: "Expense added successfully! AI is categorizing it...",
@@ -94,6 +96,22 @@ export const AddExpenseForm = ({ onAddExpense, isLoading }: AddExpenseFormProps)
               />
             </div>
           </div>
+
+          {/* Optional Receipt Upload */}
+          <div className="space-y-2">
+            <Label htmlFor="receipt" className="flex items-center gap-2">
+              <FileUp className="w-4 h-4 text-gray-500" />
+              Upload Receipt (Optional)
+            </Label>
+            <Input
+              id="receipt"
+              type="file"
+              accept=".jpg,.jpeg,.png,.pdf"
+              onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+              disabled={isLoading}
+            />
+          </div>
+
           <Button 
             type="submit" 
             className="w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700"

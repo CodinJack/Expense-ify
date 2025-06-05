@@ -11,7 +11,9 @@ interface Expense {
   description: string;
   category: string;
   date: string;
+  receiptUrl?: string | null;
 }
+
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -125,6 +127,17 @@ export const ExpenseList = ({ expenses, onDeleteExpense, isLoading }: ExpenseLis
                   <Calendar className="w-4 h-4" />
                   <span>{formatDate(expense.date)}</span>
                 </span>
+                  {expense.receiptUrl && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="text-blue-600 hover:underline p-0"
+                      onClick={() => window.open(expense.receiptUrl!, "_blank")}
+                    >
+                      View Receipt
+                    </Button>
+                  )}
+
               </div>
             </div>
             <Button

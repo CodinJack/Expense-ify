@@ -5,27 +5,11 @@ const cohere = new CohereClient({
   token: process.env.COHERE_API_KEY,
 });
 
-const verifyToken = require("../middleware/verifyToken");
-
-const { processAIResponse } = require("../utils/aiUtils");
-const multer = require("multer");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { PutObjectCommand } = require("@aws-sdk/client-s3");
 const crypto = require("crypto");
 const path = require("path");
+const s3 = require("../utils/s3");
 
-// Multer setup for handling file upload
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Max 5MB
-});
-const s3 = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
 // Helper function to clean and process AI response
 function processAIResponse(rawResponse, categoryMap) {
   if (!rawResponse) return null;
@@ -156,7 +140,6 @@ function calculateSimilarity(str1, str2) {
 }
 
 exports.addExpense = [
-  upload.single("receipt"), // Handle optional file
   async (req, res) => {
     const { amount, description } = req.body;
 
@@ -238,7 +221,7 @@ Category:`;
       res.status(200).json({
         message: "Expense Added",
         expenseId: result.insertId,
-        predictedCategory: predictedCategory,
+        predictedCategory,
         receiptUrl,
         confidence: "high",
       });
@@ -271,13 +254,13 @@ Category:`;
         res.status(500).json({ message: "Server Error" });
       }
     }
-  },
+  }
 ];
+
 
 
 // Get all expenses for logged-in user only
 exports.getAllExpenses = [
-  verifyToken,
   async (req, res) => {
     try {
       const [expenses] = await db.query(
@@ -294,7 +277,6 @@ exports.getAllExpenses = [
 
 // Get expense by ID (only if it belongs to logged-in user)
 exports.getExpenseByID = [
-  verifyToken,
   async (req, res) => {
     const { id } = req.params;
     try {
@@ -315,7 +297,6 @@ exports.getExpenseByID = [
 
 // Delete expense by ID (only if it belongs to logged-in user)
 exports.deleteExpenseByID = [
-  verifyToken,
   async (req, res) => {
     const { id } = req.params;
     try {
