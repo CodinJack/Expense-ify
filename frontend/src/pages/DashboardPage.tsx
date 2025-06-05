@@ -49,13 +49,17 @@ export const DashboardPage = ({ userEmail, onLogout }: DashboardPageProps) => {
     loadExpenses();
   }, []);
 
-  const handleAddExpense = async (amount: number, description: string) => {
+  const handleAddExpense = async (
+    amount: number,
+    description: string,
+    file?: File
+  ) => {
     setIsLoading(true);
     try {
-      await addExpense(amount, description);
+      await addExpense(amount, description, file);
       await loadExpenses();
     } catch (error) {
-      console.error('Failed to add expense:', error);
+      console.error("Failed to add expense:", error);
     } finally {
       setIsLoading(false);
     }

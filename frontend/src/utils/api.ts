@@ -57,23 +57,37 @@ export const logout = async () => {
 
 // expenses
 // ADD EXPENSE
-export const addExpense = async (amount: number, description: string) => {
+export const addExpense = async (
+  amount: number,
+  description: string,
+  file?: File
+) => {
+  const formData = new FormData();
+  formData.append("amount", amount.toString());
+  formData.append("description", description);
+
+  if (file) {
+    formData.append("receipt", file); // This name must match `upload.single("receipt")` in backend
+  }
+
   const response = await fetch(`${API_BASE_URL}/transactions/expense`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeader(),
+      ...getAuthHeader(), // Keep auth headers
+      // Do NOT set "Content-Type": multipart/form-data — browser handles it with boundary
     },
-    body: JSON.stringify({ amount, description }),
+    body: formData,
   });
 
   const data = await response.json();
+
   if (!response.ok) {
     throw new Error(data.message || "Failed to add expense");
   }
 
   return data;
 };
+
 
 // GET ALL EXPENSES
 export const fetchExpenses = async () => {
