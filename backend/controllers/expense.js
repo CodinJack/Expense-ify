@@ -7,6 +7,25 @@ const cohere = new CohereClient({
 
 const verifyToken = require("../middleware/verifyToken");
 
+const { processAIResponse } = require("../utils/aiUtils");
+const multer = require("multer");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const crypto = require("crypto");
+const path = require("path");
+
+// Multer setup for handling file upload
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Max 5MB
+});
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
 // Helper function to clean and process AI response
 function processAIResponse(rawResponse, categoryMap) {
   if (!rawResponse) return null;
@@ -137,7 +156,7 @@ function calculateSimilarity(str1, str2) {
 }
 
 exports.addExpense = [
-  verifyToken,
+  upload.single("receipt"), // Handle optional file
   async (req, res) => {
     const { amount, description } = req.body;
 
@@ -151,14 +170,12 @@ exports.addExpense = [
     }
 
     try {
-      // Fetch categories from database
       const [categoryRows] = await db.query("SELECT id, name FROM categories");
       const categoryMap = {};
       for (const row of categoryRows) {
         categoryMap[row.name.toLowerCase()] = row.id;
       }
 
-      // Improved prompt with better instructions
       const categoryList = Object.keys(categoryMap).join(", ");
       const prompt = `You are a financial categorization assistant. Your job is to match expense descriptions to predefined categories.
 
@@ -174,72 +191,80 @@ Expense description: "${description}"
 
 Category:`;
 
-      // Call Cohere API with improved parameters
       const response = await cohere.generate({
         model: "command",
         prompt,
-        temperature: 0.3, // Lower temperature for more consistent results
-        max_tokens: 15, // Slightly more tokens for category names
-        stop_sequences: ["\n", ".", "!", "?", ";"], // Stop on punctuation
+        temperature: 0.3,
+        max_tokens: 15,
+        stop_sequences: ["\n", ".", "!", "?", ";"],
       });
 
       if (!response.generations || !response.generations[0]) {
-        console.error("Invalid response from Cohere:", response);
         throw new Error("AI response was invalid");
       }
 
       const rawPrediction = response.generations[0].text;
-
-      // Process the AI response with improved logic
       const predictedCategory = processAIResponse(rawPrediction, categoryMap);
 
       if (!predictedCategory) {
-        console.error("Could not match AI response to any category:", rawPrediction);
-        // Default to a general category or create "Other" category
         throw new Error("Could not categorize expense");
       }
 
       const category_id = categoryMap[predictedCategory];
 
-      // Insert expense into database
+      let receiptUrl = null;
+
+      if (req.file) {
+        const fileExt = path.extname(req.file.originalname);
+        const fileName = `receipts/${crypto.randomUUID()}${fileExt}`;
+
+        const s3Params = {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: fileName,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype,
+        };
+
+        await s3.send(new PutObjectCommand(s3Params));
+
+        receiptUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+      }
+
       const [result] = await db.query(
-        "INSERT INTO expenses (user_id, amount, description, category_id) VALUES (?, ?, ?, ?)",
-        [req.user.id, parsedAmount, description, category_id]
+        "INSERT INTO expenses (user_id, amount, description, category_id, receipt_url) VALUES (?, ?, ?, ?, ?)",
+        [req.user.id, parsedAmount, description, category_id, receiptUrl]
       );
 
       res.status(200).json({
         message: "Expense Added",
         expenseId: result.insertId,
         predictedCategory: predictedCategory,
-        confidence: "high" // You could implement confidence scoring
+        receiptUrl,
+        confidence: "high",
       });
-      
+
     } catch (error) {
       console.error("Error adding expense with AI:", error);
-      
-      // Fallback: Try to add expense without AI categorization
+
       try {
-        // Get a default "Other" or "Miscellaneous" category
         const [defaultCategory] = await db.query(
           "SELECT id FROM categories WHERE name IN ('other', 'miscellaneous', 'general') LIMIT 1"
         );
-        
+
         if (defaultCategory.length > 0) {
           const [result] = await db.query(
             "INSERT INTO expenses (user_id, amount, description, category_id) VALUES (?, ?, ?, ?)",
             [req.user.id, parsedAmount, description, defaultCategory[0].id]
           );
-          
+
           res.status(200).json({
             message: "Expense Added (manual categorization needed)",
             expenseId: result.insertId,
             predictedCategory: "other",
-            warning: "AI categorization failed, defaulted to 'Other'"
+            warning: "AI categorization failed, defaulted to 'Other'",
           });
         } else {
-          res.status(500).json({ 
-            message: "Server Error: Could not categorize expense and no default category available" 
-          });
+          res.status(500).json({ message: "No default category found" });
         }
       } catch (fallbackError) {
         console.error("Fallback insertion also failed:", fallbackError);
@@ -248,6 +273,7 @@ Category:`;
     }
   },
 ];
+
 
 // Get all expenses for logged-in user only
 exports.getAllExpenses = [
