@@ -1,15 +1,16 @@
 const { CohereClient } = require("cohere-ai");
 const db = require("../db");
 
+const { PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+
 const cohere = new CohereClient({
   token: process.env.COHERE_API_KEY,
 });
 
-const { PutObjectCommand } = require("@aws-sdk/client-s3");
 const crypto = require("crypto");
 const path = require("path");
 const s3 = require("../utils/s3");
-const upload = require("../middleware/upload.js");
 
 // Helper function to clean and process AI response
 function processAIResponse(rawResponse, categoryMap) {
@@ -211,7 +212,16 @@ Category:`;
 
         await s3.send(new PutObjectCommand(s3Params));
 
-        receiptUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+        const signedUrl = await getSignedUrl(
+          s3,
+          new GetObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Key: fileName,
+          }),
+          { expiresIn: 3600 }
+        );
+
+        receiptUrl = signedUrl;
       }
 
       const [result] = await db.query(
@@ -260,14 +270,32 @@ Category:`;
 
 
 
+
 // Get all expenses for logged-in user only
 exports.getAllExpenses = [
   async (req, res) => {
     try {
       const [expenses] = await db.query(
-        'SELECT e.id, e.amount, e.description, c.name as category, e.created_at as date FROM expenses e JOIN categories c where e.category_id = c.id and  user_id = ? ORDER BY date DESC;',
+        `SELECT 
+          e.id, 
+          e.amount, 
+          e.description, 
+          c.name AS category, 
+          e.created_at AS date, 
+          e.receipt_url AS receiptUrl
+        FROM 
+          expenses e 
+        JOIN 
+          categories c 
+        ON 
+          e.category_id = c.id 
+        WHERE 
+          user_id = ? 
+        ORDER BY 
+          date DESC;`,
         [req.user.id]
       );
+
       res.status(200).json(expenses);
     } catch (error) {
       console.error('Error fetching expenses: ', error);
