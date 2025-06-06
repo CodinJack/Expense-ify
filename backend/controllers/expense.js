@@ -9,6 +9,7 @@ const { PutObjectCommand } = require("@aws-sdk/client-s3");
 const crypto = require("crypto");
 const path = require("path");
 const s3 = require("../utils/s3");
+const upload = require("../middleware/upload.js");
 
 // Helper function to clean and process AI response
 function processAIResponse(rawResponse, categoryMap) {
